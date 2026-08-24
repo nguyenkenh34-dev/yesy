@@ -1,0 +1,393 @@
+--==================================================
+-- FPS BOOSTER MINI HUB
+-- Chạy ngay + Boost ON/OFF + FPS + Bubble
+-- Tối ưu mượt, giảm effect, xóa fog
+-- Không can thiệp anti-cheat/anti-ban
+--==================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
+
+local Player = Players.LocalPlayer
+
+pcall(function()
+	local old = CoreGui:FindFirstChild("FPSBoosterMiniHub")
+	if old then old:Destroy() end
+end)
+
+local Gui = Instance.new("ScreenGui")
+Gui.Name = "FPSBoosterMiniHub"
+Gui.ResetOnSpawn = false
+Gui.IgnoreGuiInset = false
+Gui.DisplayOrder = 999999
+Gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+Gui.Parent = CoreGui
+
+--==================================================
+-- FPS
+--==================================================
+
+local FPS = Instance.new("TextLabel")
+FPS.Parent = Gui
+FPS.BackgroundTransparency = 1
+FPS.Size = UDim2.fromOffset(150,24)
+FPS.Position = UDim2.fromOffset(15,35)
+FPS.Text = "0 FPS - 0 MS"
+FPS.TextColor3 = Color3.new(1,1,1)
+FPS.Font = Enum.Font.GothamBold
+FPS.TextSize = 15
+FPS.TextXAlignment = Enum.TextXAlignment.Left
+FPS.Active = true
+FPS.ZIndex = 100
+
+local fpsDrag = false
+local fpsStart
+local fpsPos
+
+FPS.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		fpsDrag = true
+		fpsStart = input.Position
+		fpsPos = FPS.Position
+	end
+end)
+
+FPS.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		fpsDrag = false
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if not fpsDrag then return end
+
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
+
+		local d = input.Position - fpsStart
+
+		FPS.Position = UDim2.new(
+			fpsPos.X.Scale,
+			fpsPos.X.Offset + d.X,
+			fpsPos.Y.Scale,
+			fpsPos.Y.Offset + d.Y
+		)
+	end
+end)
+
+--==================================================
+-- MAIN
+--==================================================
+
+local Main = Instance.new("Frame")
+Main.Parent = Gui
+Main.Size = UDim2.fromOffset(245,150)
+Main.Position = UDim2.new(0,20,0.5,-75)
+Main.BackgroundColor3 = Color3.fromRGB(20,20,25)
+Main.BorderSizePixel = 0
+Main.ZIndex = 10
+
+local MC = Instance.new("UICorner")
+MC.Parent = Main
+MC.CornerRadius = UDim.new(0,10)
+
+local Title = Instance.new("TextLabel")
+Title.Parent = Main
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.fromOffset(10,7)
+Title.Size = UDim2.new(1,-50,0,28)
+Title.Text = "FPS BOOSTER"
+Title.TextColor3 = Color3.fromRGB(0,170,255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 17
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 11
+
+local Mini = Instance.new("TextButton")
+Mini.Parent = Main
+Mini.Position = UDim2.new(1,-38,0,7)
+Mini.Size = UDim2.fromOffset(28,28)
+Mini.Text = "−"
+Mini.TextSize = 20
+Mini.Font = Enum.Font.GothamBold
+Mini.TextColor3 = Color3.new(1,1,1)
+Mini.BackgroundColor3 = Color3.fromRGB(40,40,45)
+Mini.BorderSizePixel = 0
+Mini.ZIndex = 11
+
+local MinC = Instance.new("UICorner")
+MinC.Parent = Mini
+MinC.CornerRadius = UDim.new(0,7)
+
+local Status = Instance.new("TextLabel")
+Status.Parent = Main
+Status.BackgroundTransparency = 1
+Status.Position = UDim2.fromOffset(10,43)
+Status.Size = UDim2.new(1,-20,0,25)
+Status.Text = "Boost: OFF"
+Status.TextColor3 = Color3.fromRGB(255,80,80)
+Status.Font = Enum.Font.Gotham
+Status.TextSize = 15
+Status.TextXAlignment = Enum.TextXAlignment.Left
+Status.ZIndex = 11
+
+local Boost = Instance.new("TextButton")
+Boost.Parent = Main
+Boost.Position = UDim2.fromOffset(10,82)
+Boost.Size = UDim2.new(1,-20,0,42)
+Boost.Text = "ENABLE BOOST"
+Boost.TextColor3 = Color3.new(1,1,1)
+Boost.Font = Enum.Font.GothamBold
+Boost.TextSize = 15
+Boost.BackgroundColor3 = Color3.fromRGB(0,120,255)
+Boost.BorderSizePixel = 0
+Boost.ZIndex = 11
+
+local BC = Instance.new("UICorner")
+BC.Parent = Boost
+BC.CornerRadius = UDim.new(0,8)
+
+--==================================================
+-- BUBBLE
+--==================================================
+
+local Bubble = Instance.new("TextButton")
+Bubble.Parent = Gui
+Bubble.Name = "BoostBubble"
+Bubble.Size = UDim2.fromOffset(35,35)
+Bubble.Position = UDim2.new(0,15,0.5,-17)
+Bubble.Text = "⚡"
+Bubble.TextSize = 17
+Bubble.Font = Enum.Font.GothamBold
+Bubble.TextColor3 = Color3.new(1,1,1)
+Bubble.BackgroundColor3 = Color3.fromRGB(0,120,255)
+Bubble.BorderSizePixel = 0
+Bubble.Visible = false
+Bubble.Active = true
+Bubble.ZIndex = 100
+
+local BCC = Instance.new("UICorner")
+BCC.Parent = Bubble
+BCC.CornerRadius = UDim.new(1,0)
+
+local bubbleDrag = false
+local bubbleStart
+local bubblePos
+local bubbleMoved = false
+
+Bubble.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+
+		bubbleDrag = true
+		bubbleMoved = false
+		bubbleStart = input.Position
+		bubblePos = Bubble.Position
+	end
+end)
+
+Bubble.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		bubbleDrag = false
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if not bubbleDrag then return end
+
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
+
+		local d = input.Position - bubbleStart
+
+		if math.abs(d.X) > 5 or math.abs(d.Y) > 5 then
+			bubbleMoved = true
+		end
+
+		Bubble.Position = UDim2.new(
+			bubblePos.X.Scale,
+			bubblePos.X.Offset + d.X,
+			bubblePos.Y.Scale,
+			bubblePos.Y.Offset + d.Y
+		)
+	end
+end)
+
+Bubble.MouseButton1Click:Connect(function()
+	if bubbleMoved then return end
+
+	Main.Visible = true
+	Bubble.Visible = false
+end)
+
+Mini.MouseButton1Click:Connect(function()
+	Main.Visible = false
+	Bubble.Visible = true
+end)
+
+--==================================================
+-- FPS COUNTER
+--==================================================
+
+local frames = 0
+local last = os.clock()
+
+RunService.RenderStepped:Connect(function()
+	frames += 1
+
+	local now = os.clock()
+
+	if now - last >= 1 then
+		local ping = 0
+
+		pcall(function()
+			ping = math.floor(Player:GetNetworkPing() * 1000 + 0.5)
+		end)
+
+		FPS.Text = frames .. " FPS - " .. ping .. " MS"
+
+		frames = 0
+		last = now
+	end
+end)
+
+--==================================================
+-- BOOST
+--==================================================
+
+local Enabled = false
+
+local function Optimize(obj)
+	pcall(function()
+
+		if obj:IsA("ParticleEmitter") then
+			obj.Rate = math.max(obj.Rate * 0.2,1)
+
+			obj.Lifetime = NumberRange.new(
+				math.max(obj.Lifetime.Min * 0.35,0.03),
+				math.max(obj.Lifetime.Max * 0.35,0.05)
+			)
+
+		elseif obj:IsA("Trail") then
+			obj.Lifetime = math.max(obj.Lifetime * 0.2,0.03)
+
+		elseif obj:IsA("Beam") then
+			obj.Width0 = obj.Width0 * 0.2
+			obj.Width1 = obj.Width1 * 0.2
+
+		elseif obj:IsA("BasePart") then
+			obj.CastShadow = false
+
+		elseif obj:IsA("PointLight")
+		or obj:IsA("SpotLight")
+		or obj:IsA("SurfaceLight") then
+			obj.Brightness = obj.Brightness * 0.2
+			obj.Range = obj.Range * 0.35
+
+		elseif obj:IsA("Fire")
+		or obj:IsA("Smoke")
+		or obj:IsA("Sparkles") then
+			obj.Enabled = false
+
+		elseif obj:IsA("Clouds") then
+			obj.Enabled = false
+		end
+
+	end)
+end
+
+local function RemoveFog()
+	pcall(function()
+		Lighting.FogStart = 0
+		Lighting.FogEnd = 1000000
+		Lighting.GlobalShadows = false
+	end)
+
+	for _,obj in ipairs(Lighting:GetChildren()) do
+		pcall(function()
+
+			if obj:IsA("Atmosphere") then
+				obj.Density = 0
+				obj.Haze = 0
+				obj.Glare = 0
+
+			elseif obj:IsA("BloomEffect")
+			or obj:IsA("BlurEffect")
+			or obj:IsA("SunRaysEffect")
+			or obj:IsA("DepthOfFieldEffect") then
+				obj.Enabled = false
+
+			elseif obj:IsA("ColorCorrectionEffect") then
+				obj.Saturation = 0
+				obj.Contrast = 0
+			end
+
+		end)
+	end
+end
+
+local function EnableBoost()
+
+	RemoveFog()
+
+	for _,obj in ipairs(Workspace:GetDescendants()) do
+		Optimize(obj)
+	end
+
+	pcall(function()
+		local Terrain = Workspace:FindFirstChildOfClass("Terrain")
+
+		if Terrain then
+			Terrain.WaterWaveSize = 0
+			Terrain.WaterWaveSpeed = 0
+			Terrain.WaterReflectance = 0
+			Terrain.WaterTransparency = 1
+		end
+	end)
+end
+
+Workspace.DescendantAdded:Connect(function(obj)
+	if Enabled then
+		task.defer(function()
+			Optimize(obj)
+		end)
+	end
+end)
+
+Lighting.ChildAdded:Connect(function()
+	if Enabled then
+		task.defer(RemoveFog)
+	end
+end)
+
+Boost.MouseButton1Click:Connect(function()
+
+	Enabled = not Enabled
+
+	if Enabled then
+		EnableBoost()
+
+		Status.Text = "Boost: ON"
+		Status.TextColor3 = Color3.fromRGB(0,255,100)
+
+		Boost.Text = "BOOST ENABLED"
+		Boost.BackgroundColor3 = Color3.fromRGB(0,150,90)
+
+	else
+		Status.Text = "Boost: OFF"
+		Status.TextColor3 = Color3.fromRGB(255,80,80)
+
+		Boost.Text = "ENABLE BOOST"
+		Boost.BackgroundColor3 = Color3.fromRGB(0,120,255)
+	end
+
+end)
+
+print("FPS Booster loaded successfully")
