@@ -1,0 +1,488 @@
+--==================================================
+-- FPS BOOSTER MINI HUB
+-- Menu + FPS + Bubble + Drag
+-- Fog OFF + View Distance + ~60% Effect Reduction
+--==================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+
+local Player = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+
+pcall(function()
+	local old = CoreGui:FindFirstChild("FPSBoosterMiniHub")
+	if old then
+		old:Destroy()
+	end
+end)
+
+--==================================================
+-- GUI
+--==================================================
+
+local Gui = Instance.new("ScreenGui")
+Gui.Name = "FPSBoosterMiniHub"
+Gui.ResetOnSpawn = false
+Gui.IgnoreGuiInset = true
+Gui.Parent = CoreGui
+
+--==================================================
+-- FPS TEXT
+--==================================================
+
+local FPSText = Instance.new("TextLabel")
+FPSText.Parent = Gui
+FPSText.BackgroundTransparency = 1
+FPSText.Position = UDim2.fromOffset(15, 12)
+FPSText.Size = UDim2.fromOffset(180, 24)
+
+FPSText.Text = "0 FPS - 0 MS"
+FPSText.TextColor3 = Color3.fromRGB(255,255,255)
+FPSText.Font = Enum.Font.GothamBold
+FPSText.TextSize = 15
+FPSText.TextXAlignment = Enum.TextXAlignment.Left
+
+--==================================================
+-- MAIN MENU
+--==================================================
+
+local Main = Instance.new("Frame")
+Main.Parent = Gui
+Main.Size = UDim2.fromOffset(230,145)
+Main.Position = UDim2.new(0,20,0.5,-72)
+
+Main.BackgroundColor3 = Color3.fromRGB(20,20,25)
+Main.BorderSizePixel = 0
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.Parent = Main
+MainCorner.CornerRadius = UDim.new(0,10)
+
+--==================================================
+-- TITLE
+--==================================================
+
+local Title = Instance.new("TextLabel")
+Title.Parent = Main
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.fromOffset(10,7)
+Title.Size = UDim2.new(1,-50,0,30)
+
+Title.Text = "FPS BOOSTER"
+Title.TextColor3 = Color3.fromRGB(0,170,255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 17
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+--==================================================
+-- MINIMIZE
+--==================================================
+
+local Mini = Instance.new("TextButton")
+Mini.Parent = Main
+Mini.Position = UDim2.new(1,-38,0,7)
+Mini.Size = UDim2.fromOffset(28,28)
+
+Mini.Text = "−"
+Mini.TextSize = 20
+Mini.Font = Enum.Font.GothamBold
+Mini.TextColor3 = Color3.fromRGB(255,255,255)
+Mini.BackgroundColor3 = Color3.fromRGB(40,40,45)
+Mini.BorderSizePixel = 0
+
+local MiniCorner = Instance.new("UICorner")
+MiniCorner.Parent = Mini
+MiniCorner.CornerRadius = UDim.new(0,7)
+
+--==================================================
+-- STATUS
+--==================================================
+
+local Status = Instance.new("TextLabel")
+Status.Parent = Main
+Status.BackgroundTransparency = 1
+Status.Position = UDim2.fromOffset(10,45)
+Status.Size = UDim2.new(1,-20,0,25)
+
+Status.Text = "Boost: OFF"
+Status.TextColor3 = Color3.fromRGB(255,80,80)
+Status.Font = Enum.Font.Gotham
+Status.TextSize = 15
+Status.TextXAlignment = Enum.TextXAlignment.Left
+
+--==================================================
+-- BOOST BUTTON
+--==================================================
+
+local BoostButton = Instance.new("TextButton")
+BoostButton.Parent = Main
+BoostButton.Position = UDim2.fromOffset(10,84)
+BoostButton.Size = UDim2.new(1,-20,0,40)
+
+BoostButton.Text = "ENABLE BOOST"
+BoostButton.TextColor3 = Color3.fromRGB(255,255,255)
+BoostButton.Font = Enum.Font.GothamBold
+BoostButton.TextSize = 15
+BoostButton.BackgroundColor3 = Color3.fromRGB(0,120,255)
+BoostButton.BorderSizePixel = 0
+
+local BoostCorner = Instance.new("UICorner")
+BoostCorner.Parent = BoostButton
+BoostCorner.CornerRadius = UDim.new(0,8)
+
+--==================================================
+-- BUBBLE
+--==================================================
+
+local Bubble = Instance.new("TextButton")
+Bubble.Parent = Gui
+Bubble.Name = "BoostBubble"
+
+Bubble.Size = UDim2.fromOffset(35,35)
+Bubble.Position = UDim2.new(0,15,0.5,-17)
+
+Bubble.Text = "⚡"
+Bubble.TextSize = 17
+Bubble.Font = Enum.Font.GothamBold
+Bubble.TextColor3 = Color3.fromRGB(255,255,255)
+
+Bubble.BackgroundColor3 = Color3.fromRGB(0,120,255)
+Bubble.BorderSizePixel = 0
+Bubble.Visible = false
+Bubble.Active = true
+
+local BubbleCorner = Instance.new("UICorner")
+BubbleCorner.Parent = Bubble
+BubbleCorner.CornerRadius = UDim.new(1,0)
+
+--==================================================
+-- BUBBLE DRAG
+--==================================================
+
+local dragging = false
+local dragStart
+local startPos
+local moved = false
+
+Bubble.InputBegan:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = true
+		moved = false
+
+		dragStart = input.Position
+		startPos = Bubble.Position
+
+	end
+
+end)
+
+Bubble.InputEnded:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = false
+
+	end
+
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+
+	if not dragging then
+		return
+	end
+
+	if input.UserInputType ~= Enum.UserInputType.MouseMovement
+	and input.UserInputType ~= Enum.UserInputType.Touch then
+		return
+	end
+
+	local delta = input.Position - dragStart
+
+	if math.abs(delta.X) > 5
+	or math.abs(delta.Y) > 5 then
+		moved = true
+	end
+
+	Bubble.Position = UDim2.new(
+		startPos.X.Scale,
+		startPos.X.Offset + delta.X,
+
+		startPos.Y.Scale,
+		startPos.Y.Offset + delta.Y
+	)
+
+end)
+
+--==================================================
+-- OPEN BUBBLE
+--==================================================
+
+Bubble.MouseButton1Click:Connect(function()
+
+	if moved then
+		return
+	end
+
+	Main.Visible = true
+	Bubble.Visible = false
+
+end)
+
+--==================================================
+-- MINIMIZE
+--==================================================
+
+Mini.MouseButton1Click:Connect(function()
+
+	Main.Visible = false
+	Bubble.Visible = true
+
+end)
+
+--==================================================
+-- FPS COUNTER
+--==================================================
+
+local Frames = 0
+local LastFPSUpdate = os.clock()
+
+RunService.RenderStepped:Connect(function()
+
+	Frames += 1
+
+	local now = os.clock()
+
+	if now - LastFPSUpdate >= 1 then
+
+		local ping = 0
+
+		pcall(function()
+			ping = math.floor(Player:GetNetworkPing() * 1000 + 0.5)
+		end)
+
+		FPSText.Text = Frames .. " FPS - " .. ping .. " MS"
+
+		Frames = 0
+		LastFPSUpdate = now
+
+	end
+
+end)
+
+--==================================================
+-- BOOST
+--==================================================
+
+local BoostEnabled = false
+
+local ChangedObjects = {}
+local ChangedEffects = {}
+
+local function DisableHeavyLighting()
+
+	pcall(function()
+
+		for _,effect in ipairs(Lighting:GetChildren()) do
+
+			if effect:IsA("BloomEffect")
+			or effect:IsA("BlurEffect")
+			or effect:IsA("SunRaysEffect")
+			or effect:IsA("DepthOfFieldEffect") then
+
+				if ChangedEffects[effect] == nil then
+					ChangedEffects[effect] = effect.Enabled
+				end
+
+				effect.Enabled = false
+
+			end
+
+		end
+
+	end)
+
+end
+
+local function OptimizeObject(obj)
+
+	pcall(function()
+
+		-- Particle: giảm khoảng 60%
+		if obj:IsA("ParticleEmitter") then
+
+			if ChangedObjects[obj] == nil then
+				ChangedObjects[obj] = {
+					Rate = obj.Rate,
+					Enabled = obj.Enabled
+				}
+			end
+
+			obj.Rate = math.max(obj.Rate * 0.4, 1)
+
+		-- Skill beam
+		elseif obj:IsA("Beam") then
+
+			if ChangedObjects[obj] == nil then
+				ChangedObjects[obj] = {
+					Enabled = obj.Enabled
+				}
+			end
+
+			obj.Enabled = false
+
+		-- Trail / kill effect
+		elseif obj:IsA("Trail") then
+
+			if ChangedObjects[obj] == nil then
+				ChangedObjects[obj] = {
+					Enabled = obj.Enabled
+				}
+			end
+
+			obj.Enabled = false
+
+		-- Fire / Smoke / Sparkles
+		elseif obj:IsA("Fire")
+		or obj:IsA("Smoke")
+		or obj:IsA("Sparkles") then
+
+			if ChangedObjects[obj] == nil then
+				ChangedObjects[obj] = {
+					Enabled = obj.Enabled
+				}
+			end
+
+			obj.Enabled = false
+
+		-- Xóa bóng
+		elseif obj:IsA("BasePart") then
+
+			if ChangedObjects[obj] == nil then
+				ChangedObjects[obj] = {
+					CastShadow = obj.CastShadow
+				}
+			end
+
+			obj.CastShadow = false
+
+		-- Skill light
+		elseif obj:IsA("PointLight")
+		or obj:IsA("SpotLight")
+		or obj:IsA("SurfaceLight") then
+
+			if ChangedObjects[obj] == nil then
+				ChangedObjects[obj] = {
+					Enabled = obj.Enabled
+				}
+			end
+
+			obj.Enabled = false
+
+		end
+
+	end)
+
+end
+
+local function EnableBoost()
+
+	--==================================================
+	-- FOG / VIEW DISTANCE
+	--==================================================
+
+	pcall(function()
+
+		Lighting.FogStart = 0
+		Lighting.FogEnd = 1000000
+		Lighting.GlobalShadows = false
+
+	end)
+
+	--==================================================
+	-- LIGHTING EFFECT
+	--==================================================
+
+	DisableHeavyLighting()
+
+	--==================================================
+	-- MAP / SKILL EFFECT
+	--==================================================
+
+	for _,obj in ipairs(Workspace:GetDescendants()) do
+		OptimizeObject(obj)
+	end
+
+	--==================================================
+	-- TERRAIN
+	--==================================================
+
+	pcall(function()
+
+		local Terrain = Workspace:FindFirstChildOfClass("Terrain")
+
+		if Terrain then
+
+			Terrain.WaterWaveSize = 0
+			Terrain.WaterWaveSpeed = 0
+			Terrain.WaterReflectance = 0
+
+		end
+
+	end)
+
+end
+
+--==================================================
+-- NEW EFFECTS AFTER BOOST
+--==================================================
+
+Workspace.DescendantAdded:Connect(function(obj)
+
+	if BoostEnabled then
+		task.defer(function()
+			OptimizeObject(obj)
+		end)
+	end
+
+end)
+
+--==================================================
+-- BUTTON
+--==================================================
+
+BoostButton.MouseButton1Click:Connect(function()
+
+	BoostEnabled = not BoostEnabled
+
+	if BoostEnabled then
+
+		EnableBoost()
+
+		Status.Text = "Boost: ON"
+		Status.TextColor3 = Color3.fromRGB(0,255,100)
+
+		BoostButton.Text = "BOOST ENABLED"
+		BoostButton.BackgroundColor3 = Color3.fromRGB(0,150,90)
+
+	else
+
+		Status.Text = "Boost: OFF"
+		Status.TextColor3 = Color3.fromRGB(255,80,80)
+
+		BoostButton.Text = "ENABLE BOOST"
+		BoostButton.BackgroundColor3 = Color3.fromRGB(0,120,255)
+
+	end
+
+end)
+
+print("FPS Booster loaded successfully")
